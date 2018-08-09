@@ -1,2 +1,2 @@
-# cosmic-dustbox
+# cosmic_dustbox
 Toolbox for cosmic dust.
