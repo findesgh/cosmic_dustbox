@@ -1,0 +1,4 @@
+# byte code files
+*.pyc
+# emacs backup files
+*~
