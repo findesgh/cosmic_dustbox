@@ -14,7 +14,11 @@ setup(
     license='GPL-3.0',
     packages=['cosmic_dustbox'],
     install_requires=[
-        'numpy'
+        'numpy',
+        'astropy'
+    ],
+    tests_require=[
+        'pytest'
     ],
     zip_safe=False,
 )
