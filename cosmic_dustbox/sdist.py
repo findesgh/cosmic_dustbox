@@ -17,22 +17,22 @@ class SizeDist(object):
     Parameters
     ----------
     sizeMin : scalar Quantity [L]
-            Low end size cutoff of the distribution.
+        Low end size cutoff of the distribution.
     sizeMax : scalar Quantity [L]
-            High end size cutoff of the distribution.
+        High end size cutoff of the distribution.
     func : callable
-            Must take a single Quantity with array value of sizes and return
-            1/n_H * dn_gr/da [1/L]. It is called in the limits set by `sizeMin`
-            and `sizeMax` when an instance of this class is called.
+        Must take a single Quantity with array value of sizes and return
+        1/n_H * dn_gr/da [1/L]. It is called in the limits set by `sizeMin`
+        and `sizeMax` when an instance of this class is called.
 
     Attributes
     ----------
     sizeMin : scalar Quantity [L]
-            Directly taken from parameters.
+        Directly taken from parameters.
     sizeMax : scalar Quantity [L]
-            Directly taken from parameters.
+        Directly taken from parameters.
     func : callable
-            Directly taken from parameters.
+        Directly taken from parameters.
 
     References
     ----------
@@ -46,7 +46,7 @@ class SizeDist(object):
             return 1.0/s.unit
     >>> a = SizeDist(3.5*u.angstrom, 1*u.micron, f)
     >>> a(_np.logspace(-11, -5, 10)*u.m)
-    <Quantity [ 0., 0., 0., 1., 1., 1., 1., 1., 0., 0.] 1 / m>
+    <Quantity [0., 0., 0., 1., 1., 1., 1., 1., 0., 0.] 1 / m>
     """
     def __init__(self, sizeMin, sizeMax, func):
         """
@@ -67,7 +67,7 @@ class SizeDist(object):
         Parameters
         ----------
         sizes : array-valued Quantity [L]
-                Grain sizes at which to evaluate func.
+            Grain sizes at which to evaluate func.
 
         Returns
         -------
