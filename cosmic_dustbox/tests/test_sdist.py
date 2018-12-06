@@ -55,3 +55,23 @@ class TestSdist(TestCase):
         with self.assertRaises(TypeError) as context:
             a(0.5*u.micron)
         return
+
+    def test_add_scalar_quantity_int(self):
+        scalar = 1/u.micron
+        a = sdist.SizeDist(3.5*u.angstrom, 1*u.micron, lambda x: 1/x.unit)
+        b = a + scalar
+        r = a(self.__class__._sizes)
+        r[np.where(r != 0)] = r[np.where(r != 0)] + scalar
+        self.assertTrue(
+            np.all(b(self.__class__._sizes) == r))
+        return
+
+    def test_add_scalar_quantity_float(self):
+        scalar = 2.5/u.micron
+        a = sdist.SizeDist(3.5*u.angstrom, 1*u.micron, lambda x: 1/x.unit)
+        b = a + scalar
+        r = a(self.__class__._sizes)
+        r[np.where(r != 0)] = r[np.where(r != 0)] + scalar
+        self.assertTrue(
+            np.all(b(self.__class__._sizes) == r))
+        return
