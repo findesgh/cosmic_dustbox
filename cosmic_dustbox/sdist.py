@@ -41,7 +41,6 @@ class SizeDist(object):
     Examples
     --------
     >>> import astropy.units as u
-
     >>> def f(s): \
             return 1.0/s.unit
     >>> a = SizeDist(3.5*u.angstrom, 1*u.micron, f)
