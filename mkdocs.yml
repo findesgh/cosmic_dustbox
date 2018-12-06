@@ -1,0 +1,7 @@
+site_name: cosmic_dustbox documentation
+site_author: Martin Glatzle
+theme: readthedocs
+site_dir: docs/html_docs
+pages:
+- Introduction: 'index.md'
+- Quick start: 'quickstart.md'
