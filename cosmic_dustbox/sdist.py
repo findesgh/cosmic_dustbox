@@ -148,6 +148,25 @@ class SizeDist(object):
     __rmul__ = __mul__
 
 
+class PowerLaw(SizeDist):
+    """
+    Parameters
+    ----------
+    sizeMin : scalar Quantity [L]
+        Low end size cutoff of the distribution.
+    sizeMax : scalar Quantity [L]
+        High end size cutoff of the distribution.
+    power : float
+        Log-slope of the size distribution.
+    C : scalar Quantity [L]**(-1-power)
+        Normalization of the size distribution.
+    """
+    def __init__(self, sizeMin, sizeMax, power, C):
+        def f(a):
+            return C*a**power
+        super(self).__init__(sizeMin, sizeMax, f)
+        return
+
 
 ###############################################################################
 if __name__ == "__main__":
