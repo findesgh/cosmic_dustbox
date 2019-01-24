@@ -158,7 +158,7 @@ class PowerLaw(SizeDist):
         High end size cutoff of the distribution.
     power : float
         Log-slope of the size distribution.
-    C : scalar Quantity [L]**(-1-power)
+    C : scalar Quantity [L**(-1-power)]
         Normalization of the size distribution.
     """
     def __init__(self, sizeMin, sizeMax, power, C):
