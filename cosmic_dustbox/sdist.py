@@ -1,4 +1,5 @@
 ###############################################################################
+import astropy.units as _u
 import numpy as _np
 ###############################################################################
 
@@ -166,6 +167,60 @@ class PowerLaw(SizeDist):
             return C*a**power
         super(self).__init__(sizeMin, sizeMax, f)
         return
+
+
+class Log_Normal(SizeDist):
+
+    def __init__(self, sizeMin, sizeMax, rho, sgma, bc, b, a0):
+
+        # mass of carbon atom
+        m_C = 12.0107*_u.u
+
+        def B_val(i):
+            nominator = (3 * _np.exp(-4.5 * sgma**2) * bc[i] * m_C)
+            denominator = (
+                (2*_np.pi**2)**1.5 * rho * a0[i]**3 * sgma *
+                (1 + _np.erf((3 * sgma/_np.sqrt(2)) +
+                             (_np.log((a0[i]/3.5/_u.angstrom).decompose().value) / (sgma * _np.sqrt(2))))))
+            # FIXME: what do we do if the denominator is zero
+            if denominator != 0:
+                B = (nominator/denominator).decompose().value
+            return B
+
+        _B = [B_val(i) for i in range(2)]
+
+        def f(a):
+            return sum([_B(i)/a * _np.exp(-0.5*(
+                _np.log((a/a0[i]).decompose().value)/sgma)**2)
+                        for i in range(2)])
+
+        super(self).__init__(sizeMin, sizeMax, f)
+        return
+
+
+class WD01_dst(SizeDist):
+
+        def __init__(self, sizeMin, sizeMax, a_t, beta, a_c, alpha, C):
+
+            if beta >= 0:
+                def F(a):
+                    return 1 + (beta * a) / a_t
+            else:
+                def F(a):
+                    return 1 / (1 - (beta * a) / a_t)
+
+            def exp_func(a):
+                r = _np.ones_like(a.value)
+                ind = _np.where(a > a_t)
+                r[ind] = _np.exp(-(((a[ind] - a_t)/a_c).decompose().value)**3)
+                return r
+
+            def f(a):
+                return C*(a / a_t)**alpha/a \
+                        * F(a) * exp_func(a)
+
+            super(self).__init__(sizeMin, sizeMax, f)
+            return
 
 
 ###############################################################################
