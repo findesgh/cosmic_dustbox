@@ -2,20 +2,22 @@ from setuptools import setup
 
 with open('README.md') as fh:
     long_desc = fh.read()
+name = 'cosmic_dustbox'
 
 setup(
-    name='cosmic_dustbox',
-    version='0.1.dev',
+    name=name,
+    version='0.1.dev0',
     author_email='findessp@yandex.ru',
     description='Toolbox for cosmic dust.',
     long_description=long_desc,
     long_description_content_type='text/markdown',
-    url='https://github.com/findesgh/cosmic_dustbox',
+    url='https://github.com/findesgh/'+name,
     license='GPL-3.0',
-    packages=['cosmic_dustbox'],
+    packages=[name],
     install_requires=[
         'numpy',
-        'astropy'
+        'astropy',
+        'scipy'
     ],
     tests_require=[
         'pytest'

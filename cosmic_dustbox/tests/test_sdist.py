@@ -63,7 +63,9 @@ class TestSdist(TestCase):
         r = a(self.__class__._sizes)
         r[np.where(r != 0)] = r[np.where(r != 0)] + scalar
         self.assertTrue(
-            np.all(b(self.__class__._sizes) == r))
+            np.all(
+                np.isclose(b(self.__class__._sizes), r, rtol=1e-10, atol=0)
+            ))
         return
 
     def test_add_scalar_quantity_float(self):
@@ -73,5 +75,7 @@ class TestSdist(TestCase):
         r = a(self.__class__._sizes)
         r[np.where(r != 0)] = r[np.where(r != 0)] + scalar
         self.assertTrue(
-            np.all(b(self.__class__._sizes) == r))
+            np.all(
+                np.isclose(b(self.__class__._sizes), r, rtol=1e-10, atol=0)
+            ))
         return
