@@ -1,25 +1,6 @@
-    loadFiles = { 'carbon_par_0.01': 'callindex.out_CpaD03_0.01.txt', 
-                    'carbon_par_0.1':'callindex.out_CpaD03_0.10.txt',
-                    'carbon_per_0.01':'callindex.out_CpeD03_0.01.txt' ,
-                    'carbon_per_0.1': 'callindex.out_CpeD03_0.10.txt',
-                    'silica': 'callindex.out_silD03.txt' }
-
-
-    def Find_Interpolate(lamda,array):
-        w = array[0]
-        if lamda in w:
-            ind = _np.where(w == lamda)
-            Re_n_out = array[1][ind]
-            Im_n_out = array[2][ind]
-        else:    
-            ind1 = _np.where(w >= lamda).min()
-            ind2 = _np.where(w <= lamda).max()
-            wght1 = (w[ind1] - lamda)/lamda
-            wght2= (lamda - w[ind2]) / lamda         
-            Re_n_out = (wght1* array[1][ind1] + wght2* array[1][ind2]) / 2 
-            Im_n_out = (wght1* array[2][ind1] + wght2* array[2][ind2]) / 2
-            Ref_Indx = Re_n_out + j * Im_n_out
-        return Ref_Indx
+from scipy import interpolate as _interp
+import astropy.units as _u
+import numpy as _np
 
 
 class Crefin(object):
@@ -28,62 +9,27 @@ class Crefin(object):
         self.f = f
         return
 
-    def __call__(self, a, en):
-        return self.f(a, en)
-
-
-class SGPAHCrefin(Crefin):
+    def __call__(self, a, wave):
+        return self.f(
+            a.to(_u.micron, equivalencies=_u.spectral()),
+            wave.to(_u.micron, equivalencies=_u.spectral()))
 
     @classmethod
-    def loadOprops(path):
-        """
-        Load the optical properties files in CSV format.
+    def fromData(cls, data, a_bounds_error=False, lam_bounds_error=True):
+        if len(data['a']) == 1:
+            interpolation = _interp.interp1d(
+                data['lam'], data['n'], bounds_error=lam_bounds_error)
 
-        'path': path to Refractive Index and Material properties file
+            def f(a, lam):
+                n = interpolation(lam)
+                return _np.broadcast_to(n, (len(a), len(lam)))
+        elif len(data['a']) == 2:
+            interpolation = _interp.interp2d(
+                data['a'], data['lam'], data['n'], bounds_error=True)
 
-        returns:
-            energy (1D) [eV] at which Q values where computed
-            Real Refractive index and Imaginary Refractive index
-        """
-            rel_path = '\\lib\\' + path
-            path = os.path.dirname(os.path.realpath(__file__)) + rel_path
-
-        data = []
-        with open(path) as f:
-            for line in f:
-                if 'number of wavelengths' not in line:
-                    continue
-                else:
-                    line = f.next().split()
-                    w = []
-                    eps_1 = []
-                    eps_2 = []
-                    real_n = []
-                    Im_n = []
-                    while line:
-                        try:
-                            line = f.next().split()
-                        except StopIteration:
-                            line = []
-                        if line:
-                            w.append(float(line[0]))
-                            Re_n.append(float(line['Re(n)-1']) + 1)
-                            Im_n.append(float(line['Im(n)']))
-                    data.append([
-                        _np.array(w),
-                        _np.array(Re_n),
-                        _np.array(Im_n)])
-
-             return data
-
-
-class Crefin_Asil(SGPAHCrefin):
-
-    def __init__(self):
-        return
-
-
-class Crefin_Gra(SGPAHCrefin):
-
-    def __init__(self):
-        return
+            def f(a, lam):
+                r = _np.clip(a, data['a'][0], data['a'][1])
+                return interpolation(a, lam)
+        else:
+            raise ValueError("Currently no method implemented!")
+        return cls(f)
