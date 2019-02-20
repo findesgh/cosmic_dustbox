@@ -165,7 +165,7 @@ class PowerLaw(SizeDist):
     def __init__(self, sizeMin, sizeMax, power, C):
         def f(a):
             return C*a**power
-        super(self).__init__(sizeMin, sizeMax, f)
+        super().__init__(sizeMin, sizeMax, f)
         return
 
 
@@ -180,8 +180,13 @@ class Log_Normal(SizeDist):
             nominator = (3 * _np.exp(-4.5 * sgma**2) * bc[i] * m_C)
             denominator = (
                 (2*_np.pi**2)**1.5 * rho * a0[i]**3 * sgma *
-                (1 + _np.erf((3 * sgma/_np.sqrt(2)) +
-                             (_np.log((a0[i]/3.5/_u.angstrom).decompose().value) / (sgma * _np.sqrt(2))))))
+                (1 +
+                 _np.erf((3 * sgma/_np.sqrt(2)) +
+                         (_np.log((a0[i]/3.5/_u.angstrom).decompose().value) /
+                          (sgma * _np.sqrt(2)))
+                 )
+                )
+            )
             # FIXME: what do we do if the denominator is zero
             if denominator != 0:
                 B = (nominator/denominator).decompose().value
@@ -194,7 +199,7 @@ class Log_Normal(SizeDist):
                 _np.log((a/a0[i]).decompose().value)/sgma)**2)
                         for i in range(2)])
 
-        super(self).__init__(sizeMin, sizeMax, f)
+        super().__init__(sizeMin, sizeMax, f)
         return
 
 
@@ -219,7 +224,7 @@ class WD01_dst(SizeDist):
                 return C*(a / a_t)**alpha/a \
                         * F(a) * exp_func(a)
 
-            super(self).__init__(sizeMin, sizeMax, f)
+            super().__init__(sizeMin, sizeMax, f)
             return
 
 
