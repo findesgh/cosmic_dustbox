@@ -79,3 +79,39 @@ class TestSdist(TestCase):
                 np.isclose(b(self.__class__._sizes), r, rtol=1e-10, atol=0)
             ))
         return
+
+
+class TestWD01(TestCase):
+
+    def test_smoke_test(self):
+        sdist.WD01(3.1, 0.0, 'A')
+        return
+
+    def test_wrong_params(self):
+        with self.assertRaises(ValueError) as context:
+            sdist.WD01(3.1, 8.0, 'A')
+        with self.assertRaises(ValueError) as context:
+            sdist.WD01(3.1, 8.0, 'C')
+        return
+
+    def test_out_of_bounds(self):
+        sg, lg, sil = sdist.WD01(3.1, 0.0, 'A')
+        for sd in [sg, lg, sil]:
+            self.assertEqual(
+                sd(np.array([1])*u.angstrom)[0],
+                0.0/u.angstrom
+            )
+            self.assertEqual(
+                sd(np.array([11])*u.micron)[0],
+                0.0/u.angstrom
+            )
+        sg, lg, sil = sdist.WD01(3.1, 6.0, 'A')
+        for sd in [sg, lg, sil]:
+            self.assertEqual(
+                sd(np.array([1])*u.angstrom)[0],
+                0.0/u.angstrom
+            )
+            self.assertEqual(
+                sd(np.array([11])*u.micron)[0],
+                0.0/u.angstrom
+            )

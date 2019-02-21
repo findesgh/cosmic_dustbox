@@ -1,6 +1,8 @@
 ###############################################################################
 import astropy.units as _u
 import numpy as _np
+import os as _os
+from scipy.special import erf as _erf
 ###############################################################################
 
 
@@ -169,9 +171,15 @@ class PowerLaw(SizeDist):
         return
 
 
-class Log_Normal(SizeDist):
+class DoubleLogNormal(SizeDist):
+    """
+    Sum of two log normal distributions as in Eq. (2) of [1]_.
 
-    def __init__(self, sizeMin, sizeMax, rho, sgma, bc, b, a0):
+    References
+    ----------
+    .. [1] Weingartner & Draine 2001ApJ...548..296W
+    """
+    def __init__(self, sizeMin, sizeMax, rho, sgma, bc, a0):
 
         # mass of carbon atom
         m_C = 12.0107*_u.u
@@ -181,9 +189,9 @@ class Log_Normal(SizeDist):
             denominator = (
                 (2*_np.pi**2)**1.5 * rho * a0[i]**3 * sgma *
                 (1 +
-                 _np.erf((3 * sgma/_np.sqrt(2)) +
-                         (_np.log((a0[i]/3.5/_u.angstrom).decompose().value) /
-                          (sgma * _np.sqrt(2)))
+                 _erf((3 * sgma/_np.sqrt(2)) +
+                      (_np.log((a0[i]/3.5/_u.angstrom).decompose().value) /
+                       (sgma * _np.sqrt(2)))
                  )
                 )
             )
@@ -195,7 +203,7 @@ class Log_Normal(SizeDist):
         _B = [B_val(i) for i in range(2)]
 
         def f(a):
-            return sum([_B(i)/a * _np.exp(-0.5*(
+            return sum([_B[i]/a * _np.exp(-0.5*(
                 _np.log((a/a0[i]).decompose().value)/sgma)**2)
                         for i in range(2)])
 
@@ -203,30 +211,95 @@ class Log_Normal(SizeDist):
         return
 
 
-class WD01_dst(SizeDist):
+class WD01ExpCutoff(SizeDist):
+    """
+    Power law distribution with exponential cutoff as in Eqs. (4) and (5) of
+    [1]_.
 
-        def __init__(self, sizeMin, sizeMax, a_t, beta, a_c, alpha, C):
+    References
+    ----------
+    .. [1] Weingartner & Draine 2001ApJ...548..296W
+    """
+    def __init__(self, sizeMin, sizeMax, alpha, beta, a_t, a_c, C):
 
-            if beta >= 0:
-                def F(a):
-                    return 1 + (beta * a) / a_t
-            else:
-                def F(a):
-                    return 1 / (1 - (beta * a) / a_t)
+        if beta >= 0:
+            def F(a):
+                return 1 + (beta * a) / a_t
+        else:
+            def F(a):
+                return 1 / (1 - (beta * a) / a_t)
 
-            def exp_func(a):
-                r = _np.ones_like(a.value)
-                ind = _np.where(a > a_t)
-                r[ind] = _np.exp(-(((a[ind] - a_t)/a_c).decompose().value)**3)
-                return r
+        def exp_func(a):
+            r = _np.ones_like(a.value)
+            ind = _np.where(a > a_t)
+            r[ind] = _np.exp(-(((a[ind] - a_t)/a_c).decompose().value)**3)
+            return r
 
-            def f(a):
-                return C*(a / a_t)**alpha/a \
-                        * F(a) * exp_func(a)
+        def f(a):
+            return C*(a / a_t)**alpha/a \
+                * F(a) * exp_func(a)
 
-            super().__init__(sizeMin, sizeMax, f)
-            return
+        super().__init__(sizeMin, sizeMax, f)
+        return
 
+
+def WD01(RV, bc, case):
+    # pandas dataframe would be far better suited for this but don't know if
+    # pulling in another dependency makes sense just for this
+    data = _np.genfromtxt(
+        _os.path.join(
+            _os.path.dirname(__file__),
+            'data/sdist/WD01-2001ApJ...548..296W-Table1.txt'
+        ),
+        dtype=None,
+        encoding=None
+    )
+    # doing == float comparison here, might come back to bite us at some point
+    params = data[
+        [
+            j for j, x in enumerate(data)
+            if (x[0] == RV and x[1] == bc and x[3] == case)
+        ]
+    ]
+
+    if len(params) > 1:
+        # this should never happen
+        raise ValueError("Could not uniquely identify parameter set.")
+    elif len(params) == 0:
+        raise ValueError("Could not identify parameter set.")
+
+    params = params[0]
+
+    sizeMin = 3.5*_u.angstrom
+    sizeMax = 10*_u.micron
+    rho = 2.24*_u.g/_u.cm**3
+    s_gra = DoubleLogNormal(
+        sizeMin,
+        sizeMax,
+        rho,
+        0.4,
+        [0.75*params[2], 0.25*params[2]],
+        [3.5*_u.angstrom, 30*_u.angstrom]
+    )
+    l_gra = WD01ExpCutoff(
+        sizeMin,
+        sizeMax,
+        params[4],
+        params[5],
+        params[6]*_u.m,
+        params[7]*_u.m,
+        params[8]
+    )
+    sil = WD01ExpCutoff(
+        sizeMin,
+        sizeMax,
+        params[9],
+        params[10],
+        params[11]*_u.m,
+        params[12]*_u.m,
+        params[13]
+    )
+    return s_gra, l_gra, sil
 
 ###############################################################################
 if __name__ == "__main__":
