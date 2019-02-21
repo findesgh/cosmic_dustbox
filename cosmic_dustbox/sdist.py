@@ -86,7 +86,7 @@ class SizeDist(object):
 
         Overloading of ``+`` operator. Can add an instance of ``SizeDist`` (or
         subclass thereof), any callable or a scalar to ``self.func``. No check
-        on units is performed. Returns an instance of ``self.__class__``, the
+        on units is performed. Returns an instance of ``SizeDist``, the
         ``func`` attribute of which is defined to return the corresponding sum.
 
         If ``other`` is an instance of ``SizeDist`` (or subclass), take maximum
@@ -124,7 +124,7 @@ class SizeDist(object):
             def func(sizes):
                 return self.func(sizes) + other.func(sizes)
 
-            return self.__class__(sizeMin, sizeMax, func)
+            return SizeDist(sizeMin, sizeMax, func)
         elif callable(other):
             def func(sizes):
                 return self.func(sizes) + other(sizes)
@@ -273,7 +273,7 @@ def WD01(RV, bc, case):
     sizeMin = 3.5*_u.angstrom
     sizeMax = 10*_u.micron
     rho = 2.24*_u.g/_u.cm**3
-    s_gra = DoubleLogNormal(
+    s_car = DoubleLogNormal(
         sizeMin,
         sizeMax,
         rho,
@@ -281,7 +281,7 @@ def WD01(RV, bc, case):
         [0.75*params[2], 0.25*params[2]],
         [3.5*_u.angstrom, 30*_u.angstrom]
     )
-    l_gra = WD01ExpCutoff(
+    l_car = WD01ExpCutoff(
         sizeMin,
         sizeMax,
         params[4],
@@ -299,7 +299,7 @@ def WD01(RV, bc, case):
         params[12]*_u.m,
         params[13]
     )
-    return s_gra, l_gra, sil
+    return s_car + l_car, sil
 
 ###############################################################################
 if __name__ == "__main__":

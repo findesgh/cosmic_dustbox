@@ -95,8 +95,7 @@ class TestWD01(TestCase):
         return
 
     def test_out_of_bounds(self):
-        sg, lg, sil = sdist.WD01(3.1, 0.0, 'A')
-        for sd in [sg, lg, sil]:
+        for sd in sdist.WD01(3.1, 0.0, 'A'):
             self.assertEqual(
                 sd(np.array([1])*u.angstrom)[0],
                 0.0/u.angstrom
@@ -105,8 +104,7 @@ class TestWD01(TestCase):
                 sd(np.array([11])*u.micron)[0],
                 0.0/u.angstrom
             )
-        sg, lg, sil = sdist.WD01(3.1, 6.0, 'A')
-        for sd in [sg, lg, sil]:
+        for sd in sdist.WD01(3.1, 6.0, 'A'):
             self.assertEqual(
                 sd(np.array([1])*u.angstrom)[0],
                 0.0/u.angstrom
