@@ -5,12 +5,57 @@ import os as _os
 
 
 class Crefin(object):
+    """
+    Base class used to represent the complex refractive index of a certain
+    grain material possibly along a certain axis.
+
+    This class implements a `__call__` method which computes the crefin on a
+    grid of grain size and photon energy (or equivalent).
+
+    Parameters
+    ----------
+    f : callable
+        A callable object that takes as first argument a 1-D array of grain
+        sizes in micron and as second argument a 1-D array of wavelengths in
+        micron. It shall return a 2-D array of the complex refractive index
+        evaluated at the given sizes and wavelengths. The first axis of this
+        array shall correspond to grain size and the second axis to
+        wavelength. Note that this axis ordering is reversed wrt to the output
+        of `np.meshgrid`.
+
+    Attributes
+    ----------
+    f : callable
+        Directly taken from parameters.
+    """
 
     def __init__(self, f):
+        """
+        See class docstring.
+        """
         self.f = f
         return
 
     def __call__(self, a, wave):
+        """
+        Compute the complex refractive index as a function of grain size and
+        wavelength or equivalent.
+
+        Parameters
+        ----------
+        a : array-valued Quantity [L]
+            1-D array of grain sizes as which to evaluate crefin.
+
+        wave : array-valued Quantity
+            1-D array of photon wavelengths or equivalent at which to evaluate
+            crefin.
+
+        Returns
+        -------
+         : array
+            2-D array of crefin values. The first axis corresponds to grain
+            size and the second to photon wavelength.
+        """
         return self.f(
             a.to(_u.micron, equivalencies=_u.spectral()).value,
             wave.to(_u.micron, equivalencies=_u.spectral()).value)
@@ -18,38 +63,44 @@ class Crefin(object):
     @classmethod
     def fromData(cls, a, lam, n, bounds_error=True, a_bounds_error=False):
         """
-        Interpolate complex refractive index from given data.
+        Linearly interpolate complex refractive index from given data.
+
+        Create an object which interpolates the complex refractive index in
+        grain size and wavelength from the given data in its `__call__` method.
 
         Parameters
         ----------
         a, lam : array
             1-D arrays of grain sizes and wavelengths in micron. Must have
             length >= 2. `a` can also be None if there is no size dependence or
-            it is not known
+            it is not known.
 
         n : array
-            Array of the complex refractive index. Note: if `n` is 2-D, its
-            first index is wavelength and its second index is grain size. For
-            more details see the documentation of scipy.interpolate.interp2d.
+            2-D array of the complex refractive index. Note: its first index is
+            grain size and its second index is wavelength, so if len(a) == l
+            and len(lam) == k, n.shape == (l, k). If a is None, `n` shall be
+            1-D with the same length as `lam`.
 
         bounds_error : bool, optional
-            Whether to raise out of bounds errors when interpolating.
+            Whether to raise out of bounds errors when interpolating. If False,
+            extrapolation is used. See also `a_bounds_error`.
 
         a_bounds_error : bool, optional
             If `bounds_error` is True, this can be used to specify if bounds
             errors on grain size should be ignored by setting it False. This is
-            useful because often `n` is not known at many grain sizes. If
-            `bounds_error` is False or if `a` is None, this is ignored.
+            useful because often `n` is not known at many grain sizes. Note
+            that if the bounds in grain size are to be ignored, the values of
+            `n` for the largest/smallest grain size will be used outside the
+            bounds instead of extrapolating. If `bounds_error` is False,
+            `a_bounds_error` will be ignored, i.e. in this case extrapolation
+            is used as for the wavelengths. If `a` is None, it is assumed that
+            there is no size dependence of `n`.
 
-        Note
-        ----
-        scipy.interpolate.interp2d implicitly sorts its `x` and `y` arguments
-        and returns an array that's sorted accordingly. Here we shuffle the
-        rows and columns of the returned array around so that their
-        row-(column-)order corresponds to the order of the input arrays. This
-        is highly inefficient but convenient. Like this the interpolation
-        behaves exactly as a 2D function evaluated on a meshgrid of `x` and `y`
-        would.
+        Returns
+        -------
+         : cls
+            An instance of the calling class the `__call__` method of which
+            interpolates the crefin on the given data.
         """
         if a is None:
             interpolation = _interp.interp1d(lam, n, bounds_error=bounds_error)
@@ -57,26 +108,34 @@ class Crefin(object):
             def f(a, lam):
                 return _np.broadcast_to(interpolation(lam), (len(a), len(lam)))
         else:
-            rinterpolation = _interp.interp2d(a, lam, n.real,
+            rinterpolation = _interp.interp2d(lam, a, n.real,
                 bounds_error=bounds_error)
-            iinterpolation = _interp.interp2d(a, lam, n.imag,
+            iinterpolation = _interp.interp2d(lam, a, n.imag,
                 bounds_error=bounds_error)
 
+            # scipy.interpolate.interp2d implicitly sorts its `x` and `y`
+            # arguments and returns an array that's sorted accordingly. Here we
+            # shuffle the rows and columns of the returned array around so that
+            # their row-(column-)order corresponds to the order of the input
+            # arrays. This is done for convenience, however it is inefficient
+            # and might be improved in the future.
             if bounds_error and not a_bounds_error:
                 def f(aa, lam):
                     r = _np.clip(aa, _np.amin(a), _np.amax(a))
-                    xind = _np.argsort(r)
-                    yind = _np.argsort(lam)
+                    rowind_unsorted = _np.argsort(r)
+                    colind_unsorted = _np.argsort(lam)
                     return (
-                        rinterpolation(r, lam)
-                        + 1j*iinterpolation(r, lam))[yind][:, xind].T
+                        rinterpolation(lam, r)
+                        + 1j*iinterpolation(lam, r))[
+                            rowind_unsorted][:, colind_unsorted]
             else:
                 def f(a, lam):
-                    xind = _np.argsort(r)
-                    yind = _np.argsort(lam)
+                    rowind_unsorted = _np.argsort(lam)
+                    colind_unsorted = _np.argsort(r)
                     return (
-                        rinterpolation(a, lam)
-                        + 1j*iinterpolation(a, lam))[yind][:, xind].T
+                        rinterpolation(lam, a)
+                        + 1j*iinterpolation(lam, a))[
+                            rowind_unsorted][:, colind_unsorted]
         return cls(f)
 
 
@@ -114,10 +173,9 @@ class SGPAHCrefin(Crefin):
             n.append(nt)
         if len(a) > 1:
             a = _np.array(a)
-            n = _np.array(n).T
         elif len(a) == 1:
             a = None
-            n = _np.array(n)
+        n = _np.array(n)
         return cls.fromData(a, lam, n, bounds_error=True, a_bounds_error=False)
 
 

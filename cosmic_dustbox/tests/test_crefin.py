@@ -11,12 +11,13 @@ class TestFromData(TestCase):
     def setUpClass(cls):
         cls.a1 = None
         cls.lam1 = np.linspace(1, 10, num=10)
-        cls.n1= np.random.random(10) + 1j * np.random.random(10)
+        cls.n1 = np.linspace(0, 10, num=10) + 1j*np.linspace(0, 10, num=10)
 
         cls.a2 = np.array([1e-9, 1e-8])
-        cls.lam2 = np.linspace(1, 10, num=10)
+        cls.lam2 = np.linspace(1, 10, num=20)
         cls.n2 = (
-            np.random.random(20) + 1j * np.random.random(20)).reshape(10, 2)
+           np.linspace(0, 8, num=40)
+            + 1j*np.linspace(0, 9, num=40)).reshape(2, 20)
         return
 
     @classmethod
@@ -26,6 +27,24 @@ class TestFromData(TestCase):
     def test_no_a(self):
         c = self.__class__
         a = crefin.Crefin.fromData(c.a1, c.lam1, c.n1)
+        r = a(
+            np.array([1, 2])*u.micron,
+            np.array([1, 5, 9])*u.micron
+        )
+        self.assertTrue(
+            r.shape[0] == 2)
+        self.assertTrue(
+            r.shape[1] == 3)
+        self.assertAlmostEqual(
+            r[0, 0], complex(0, 0))
+        self.assertAlmostEqual(
+            r[1, 0], complex(0, 0))
+        # check bounds error
+        with self.assertRaises(ValueError) as context:
+            a(
+                np.array([1])*u.micron,
+                np.array([11])*u.micron
+            )
         return
 
     def test_normal(self):
@@ -35,7 +54,8 @@ class TestFromData(TestCase):
 
     def test_normal_no_bounds(self):
         c = self.__class__
-        a = crefin.Crefin.fromData(c.a2, c.lam2, c.n2, bounds_error=False)
+        a = crefin.Crefin.fromData(c.a2, c.lam2, c.n2,
+                                   bounds_error=False)
         return
 
 
