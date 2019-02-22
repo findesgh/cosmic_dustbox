@@ -25,7 +25,7 @@ class Crefin(object):
 
     Attributes
     ----------
-    f : callable
+    _f : callable
         Directly taken from parameters.
     """
 
@@ -33,7 +33,7 @@ class Crefin(object):
         """
         See class docstring.
         """
-        self.f = f
+        self._f = f
         return
 
     def __call__(self, a, wave):
@@ -56,7 +56,7 @@ class Crefin(object):
             2-D array of crefin values. The first axis corresponds to grain
             size and the second to photon wavelength.
         """
-        return self.f(
+        return self._f(
             a.to(_u.micron, equivalencies=_u.spectral()).value,
             wave.to(_u.micron, equivalencies=_u.spectral()).value)
 
@@ -122,20 +122,22 @@ class Crefin(object):
             if bounds_error and not a_bounds_error:
                 def f(aa, lam):
                     r = _np.clip(aa, _np.amin(a), _np.amax(a))
-                    rowind_unsorted = _np.argsort(r)
-                    colind_unsorted = _np.argsort(lam)
-                    return (
-                        rinterpolation(lam, r)
-                        + 1j*iinterpolation(lam, r))[
-                            rowind_unsorted][:, colind_unsorted]
+                    n = rinterpolation(lam, r) + 1j*iinterpolation(lam, r)
+                    if _np.prod(r.shape)*_np.prod(lam.shape) > 1:
+                        rowind_unsorted = _np.argsort(r)
+                        colind_unsorted = _np.argsort(lam)
+                        return n[rowind_unsorted][:, colind_unsorted]
+                    else:
+                        return _np.atleast_2d(n)
             else:
                 def f(a, lam):
-                    rowind_unsorted = _np.argsort(lam)
-                    colind_unsorted = _np.argsort(r)
-                    return (
-                        rinterpolation(lam, a)
-                        + 1j*iinterpolation(lam, a))[
-                            rowind_unsorted][:, colind_unsorted]
+                    n = rinterpolation(lam, a) + 1j*iinterpolation(lam, a)
+                    if _np.prod(r.shape)*_np.prod(lam.shape) > 1:
+                        rowind_unsorted = _np.argsort(lam)
+                        colind_unsorted = _np.argsort(r)
+                        return n[rowind_unsorted][:, colind_unsorted]
+                    else:
+                        return _np.atleast_2d(n)
         return cls(f)
 
 
