@@ -146,9 +146,10 @@ class SGPAHCrefin(Crefin):
     @classmethod
     def parseCrefinFile(cls, path):
         with open(path) as f:
-            data = _np.loadtxt(f, skiprows=5)
+            data = _np.loadtxt(f, skiprows=6)
             f.seek(0)
-            next(f)
+            # skip tow lines
+            [next(f) for i in range(2)]
             size = float(f.readline().split('=')[0])
         return size, data
 
