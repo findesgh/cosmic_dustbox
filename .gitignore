@@ -2,6 +2,7 @@
 *.pyc
 # emacs backup files
 *~
+\#*\#
 # python egg info
 *.egg-info/*
 .cache/*
