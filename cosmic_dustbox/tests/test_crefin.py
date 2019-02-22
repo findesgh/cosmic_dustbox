@@ -52,6 +52,21 @@ class TestFromData(TestCase):
         a = crefin.Crefin.fromData(c.a2, c.lam2, c.n2)
         return
 
+    def test_single_element(self):
+        c = self.__class__
+        a = crefin.Crefin.fromData(c.a2, c.lam2, c.n2)
+        n = a(
+            np.array([1e-9])*u.micron,
+            np.array([8])*u.micron
+        )
+        self.assertTrue
+        return
+
+    def test_single_element_no_bounds(self):
+        c = self.__class__
+        a = crefin.Crefin.fromData(c.a2, c.lam2, c.n2)
+        return
+
     def test_normal_no_bounds(self):
         c = self.__class__
         a = crefin.Crefin.fromData(c.a2, c.lam2, c.n2,
