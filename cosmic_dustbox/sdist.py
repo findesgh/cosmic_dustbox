@@ -128,11 +128,11 @@ class SizeDist(object):
         elif callable(other):
             def func(sizes):
                 return self.func(sizes) + other(sizes)
-            return self.__class__(self.sizeMin, self.sizeMax, func)
+            return SizeDist(self.sizeMin, self.sizeMax, func)
         else:
             def func(sizes):
                 return other + self.func(sizes)
-            return self.__class__(self.sizeMin, self.sizeMax, func)
+            return SizeDist(self.sizeMin, self.sizeMax, func)
 
     # make addition commutative
     __radd__ = __add__
