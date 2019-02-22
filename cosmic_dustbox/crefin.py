@@ -25,7 +25,7 @@ class Crefin(object):
 
     Attributes
     ----------
-    f : callable
+    _f : callable
         Directly taken from parameters.
     """
 
@@ -33,7 +33,7 @@ class Crefin(object):
         """
         See class docstring.
         """
-        self.f = f
+        self._f = f
         return
 
     def __call__(self, a, wave):
@@ -56,7 +56,7 @@ class Crefin(object):
             2-D array of crefin values. The first axis corresponds to grain
             size and the second to photon wavelength.
         """
-        return self.f(
+        return self._f(
             a.to(_u.micron, equivalencies=_u.spectral()).value,
             wave.to(_u.micron, equivalencies=_u.spectral()).value)
 
