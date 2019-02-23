@@ -16,7 +16,7 @@ Note: `cosmic_dustbox` uses `astropy.units` throughout.
 
 Evaluating the Weingartner & Draine 2001 size distributions for carbonaceous
 and silicate grains for R\_V=3.1 and b\_C=6.0e-5 in case 'A' at a range of
-grain sizes between 1 nm and 1 $\mu$:
+grain sizes between 1 nm and 1 micron:
 
 ```
 >>> import astropy.units as u
@@ -55,8 +55,8 @@ for sure, but we'll try our best.
 To introduce the objects central to how we describe cosmic dust, assume we are
 interested in the dust in a certain environment. Assume then that we cut some
 volume out of said environment. The volume should, of course, be representative
-the environment. So if we are interested in the dust in the Solar System as a
-whole, a cubic meter of space somewhere between Earth and Mars will be too
+of the environment. So if we are interested in the dust in the Solar System as
+a whole, a cubic meter of space somewhere between Earth and Mars will be too
 small and a box the size of the Milky Way will be too large. Suppose we
 collected all of the dust grains contained in this volume. We would like to be
 able to describe this collection with a reasonable degree of accuracy without
@@ -95,10 +95,10 @@ So, to recap, what we need to describe a collection of grains are:
 This approach can be refined as needed by simply splitting grain species. In
 the extreme, we would have one species per grain and each species would have a
 delta-peak size distribution and we would be back to the overwhelming diversity
-we started out from. The approach also sounds like it can almost directly be
-translated into software. The size distribution class in `sdist.py` is already
-in a somewhat advanced state so feel free to check it out.
+we started out from. With this package, we aim to translate the approach to
+software. The size distribution class in `sdist.py` is already in a somewhat
+advanced state so feel free to check it out.
 
 ## Literature
-"Physics of the Interstellar and Intergalactic Medium" by B. Draine provides
-a good introduction (and more than that) to cosmic dust.
+"Physics of the Interstellar and Intergalactic Medium" by B. Draine provides a
+good introduction (and much more than that) to cosmic dust.
