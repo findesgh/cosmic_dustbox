@@ -22,11 +22,6 @@ class Crefin(object):
         array shall correspond to grain size and the second axis to
         wavelength. Note that this axis ordering is reversed wrt to the output
         of `np.meshgrid`.
-
-    Attributes
-    ----------
-    _f : callable
-        Directly taken from parameters.
     """
 
     def __init__(self, f):
