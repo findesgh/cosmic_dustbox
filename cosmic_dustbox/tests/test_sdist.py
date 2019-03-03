@@ -81,6 +81,53 @@ class TestSdist(TestCase):
         return
 
 
+class TestWD01ExpCutoff(TestCase):
+
+    def test_simple(self):
+        sd = sdist.WD01ExpCutoff(
+            3.5*u.angstrom, 1*u.micron, 0, 0, 1*u.micron, 1*u.micron, 1)
+        sizes = [
+            1*u.micron,
+            1*u.nm,
+            1*u.angstrom,
+            2*u.micron,
+        ]
+        res = [
+            1./(1*u.micron),
+            1./(1*u.nm),
+            0,
+            0,
+        ]
+        for s, r in zip(sizes, res):
+            self.assertEqual(
+                sd(np.array([s.value])*s.unit)[0], r
+            )
+        return
+
+    def test_simple_2(self):
+        sd = sdist.WD01ExpCutoff(
+            3.5*u.angstrom, 1*u.micron, 0, 0, 1*u.nm, 1*u.micron, 1)
+        sizes = [
+            1*u.micron,
+            2*u.nm,
+            0.5*u.nm,
+            1*u.angstrom,
+            2*u.micron,
+        ]
+        res = [
+            1./(1*u.micron) * np.exp(-(1-1e-3)**3),
+            1./(2*u.nm),
+            2/u.nm * np.exp(1e-9/8),
+            u.Quantity(0),
+            u.Quantity(0),
+        ]
+        for s, r in zip(sizes, res):
+            self.assertAlmostEqual(
+                sd(np.array([s.value])*s.unit)[0].value, r.value
+            )
+        return
+
+
 class TestWD01(TestCase):
 
     def test_smoke_test(self):

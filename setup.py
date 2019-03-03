@@ -1,19 +1,18 @@
 from setuptools import setup
+import metadata as md
 
-with open('README.md') as fh:
-    long_desc = fh.read()
-name = 'cosmic_dustbox'
 
 setup(
-    name=name,
-    version='0.1.dev0',
-    author_email='findessp@yandex.ru',
-    description='Toolbox for cosmic dust.',
-    long_description=long_desc,
+    name=md.name,
+    version=md.version,
+    author=md.authors,
+    author_email=md.author_email,
+    description=md.description,
+    long_description=md.long_desc,
     long_description_content_type='text/markdown',
-    url='https://github.com/findesgh/'+name,
-    license='GPL-3.0',
-    packages=[name],
+    url=md.url,
+    license=md.license,
+    packages=[md.name],
     install_requires=[
         'numpy',
         'astropy',
