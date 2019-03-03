@@ -186,7 +186,7 @@ class LogNormal(SizeDist):
 
         nominator = (3 * _np.exp(-4.5 * sgma**2) * bc * m_C)
         denominator = (
-            (2*_np.pi**2)**1.5 * rho * a0**3 * sgma *
+            (2*_np.pi)**1.5 * rho * a0**3 * sgma *
             (1 +
              _erf((3 * sgma/_np.sqrt(2)) +
                   (_np.log(a0/3.5/_u.angstrom) /
