@@ -219,19 +219,19 @@ class WD01ExpCutoff(SizeDist):
 
         if beta >= 0:
             def F(a):
-                return 1 + (beta * a) / a_t
+                return 1.0 + (beta * a) / a_t
         else:
             def F(a):
-                return 1 / (1 - (beta * a) / a_t)
+                return 1.0 / (1 - (beta * a) / a_t)
 
         def exp_func(a):
             r = _np.ones_like(a.value)
             ind = _np.where(a > a_t)
-            r[ind] = _np.exp(-(((a[ind] - a_t)/a_c).decompose().value)**3)
+            r[ind] = _np.exp(-(((a[ind] - a_t)/a_c))**3)
             return r
 
         def f(a):
-            return C*(a / a_t)**alpha/a \
+            return C/a*(a / a_t)**alpha \
                 * F(a) * exp_func(a)
 
         super().__init__(sizeMin, sizeMax, f)
