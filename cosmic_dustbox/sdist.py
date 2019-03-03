@@ -171,9 +171,9 @@ class PowerLaw(SizeDist):
         return
 
 
-class DoubleLogNormal(SizeDist):
+class LogNormal(SizeDist):
     """
-    Sum of two log normal distributions as in Eq. (2) of [1]_.
+    Log normal distribution as in Eq. (2) of [1]_.
 
     References
     ----------
@@ -184,28 +184,23 @@ class DoubleLogNormal(SizeDist):
         # mass of carbon atom
         m_C = 12.0107*_u.u
 
-        def B_val(i):
-            nominator = (3 * _np.exp(-4.5 * sgma**2) * bc[i] * m_C)
-            denominator = (
-                (2*_np.pi**2)**1.5 * rho * a0[i]**3 * sgma *
-                (1 +
-                 _erf((3 * sgma/_np.sqrt(2)) +
-                      (_np.log((a0[i]/3.5/_u.angstrom).decompose().value) /
-                       (sgma * _np.sqrt(2)))
-                 )
-                )
+        nominator = (3 * _np.exp(-4.5 * sgma**2) * bc * m_C)
+        denominator = (
+            (2*_np.pi**2)**1.5 * rho * a0**3 * sgma *
+            (1 +
+             _erf((3 * sgma/_np.sqrt(2)) +
+                  (_np.log(a0/3.5/_u.angstrom) /
+                   (sgma * _np.sqrt(2)))
+             )
             )
-            # FIXME: what do we do if the denominator is zero
-            if denominator != 0:
-                B = (nominator/denominator).decompose().value
-            return B
-
-        _B = [B_val(i) for i in range(2)]
+        )
+        # FIXME: what do we do if the denominator is zero
+        if denominator != 0:
+            B = (nominator/denominator).decompose()
 
         def f(a):
-            return sum([_B[i]/a * _np.exp(-0.5*(
-                _np.log((a/a0[i]).decompose().value)/sgma)**2)
-                        for i in range(2)])
+            return B/a * _np.exp(-0.5*(
+                _np.log(a/a0)/sgma)**2)
 
         super().__init__(sizeMin, sizeMax, f)
         return
@@ -273,13 +268,21 @@ def WD01(RV, bc, case):
     sizeMin = 3.5*_u.angstrom
     sizeMax = 10*_u.micron
     rho = 2.24*_u.g/_u.cm**3
-    s_car = DoubleLogNormal(
+    s_car = LogNormal(
         sizeMin,
         sizeMax,
         rho,
         0.4,
-        [0.75*params[2], 0.25*params[2]],
-        [3.5*_u.angstrom, 30*_u.angstrom]
+        0.75*params[2],
+        3.5*_u.angstrom
+    ) + \
+    LogNormal(
+        sizeMin,
+        sizeMax,
+        rho,
+        0.4,
+        0.25*params[2],
+        30*_u.angstrom
     )
     l_car = WD01ExpCutoff(
         sizeMin,
