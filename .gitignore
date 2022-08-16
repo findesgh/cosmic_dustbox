@@ -8,3 +8,5 @@
 .cache/*
 .eggs/*
 .pytest_cache/*
+# tox
+.tox
