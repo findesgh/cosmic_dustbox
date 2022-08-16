@@ -1,7 +1,6 @@
 from setuptools import setup
 import metadata as md
 
-
 setup(
     name=md.name,
     version=md.version,
